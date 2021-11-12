@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using Android.Content;
 using Android.OS;
@@ -11,6 +13,12 @@ namespace Rg.Plugins.Popup
 {
     public static class Popup
     {
+        #region Pop-up POC
+
+        internal static readonly IDictionary<Guid, Android.Views.View> PopupViewCache = new ConcurrentDictionary<Guid, Android.Views.View>();
+
+        #endregion Pop-up POC
+
         internal static event EventHandler? OnInitialized;
 
         internal static bool IsInitialized { get; private set; }

@@ -2,18 +2,18 @@
 using System.Threading.Tasks;
 
 using Android.App;
+using Android.Content;
 using Android.OS;
 using Android.Provider;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
-
 using Rg.Plugins.Popup.Contracts;
 using Rg.Plugins.Popup.Droid.Extensions;
 using Rg.Plugins.Popup.Droid.Impl;
 using Rg.Plugins.Popup.Exceptions;
 using Rg.Plugins.Popup.Pages;
-
+using Rg.Plugins.Popup.Platforms.Android.Activities;
 using Xamarin.Forms;
 
 using XApplication = Xamarin.Forms.Application;
@@ -25,6 +25,7 @@ namespace Rg.Plugins.Popup.Droid.Impl
     internal class PopupPlatformDroid : IPopupPlatform
     {
         private static FrameLayout? DecoreView => (FrameLayout?)((Activity?)Popup.Context)?.Window?.DecorView;
+        private static Intent? _popupIntent;
 
         public event EventHandler OnInitialized
         {
@@ -45,7 +46,36 @@ namespace Rg.Plugins.Popup.Droid.Impl
             page.Parent = XApplication.Current.MainPage;
             var renderer = page.GetOrCreateRenderer();
 
-            decoreView?.AddView(renderer.View);
+            // // Original rg.plugins.popup implementation
+            // decoreView?.AddView(renderer.View);
+
+            #region Pop-up POC
+
+            try
+            {
+                // Display popup in a separate Activity
+                if (Popup.Context != null)
+                {
+                    var popupId = page.PopupId;
+                    
+                    if (Popup.PopupViewCache.ContainsKey(popupId))
+                    {
+                        throw new Exception("Popup already exists");
+                    }
+
+                    Popup.PopupViewCache.Add(popupId, renderer.View);
+                    _popupIntent = new Intent(Popup.Context, typeof(PopupActivity));
+                    _popupIntent.PutExtra("popupId", popupId.ToString("N"));
+                    (Popup.Context as Activity)?.StartActivityForResult(_popupIntent, 0);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            #endregion Pop-up POC
+
             return PostAsync(renderer.View);
 
             static void HandleAccessibilityWorkaround(PopupPage page)
@@ -93,6 +123,15 @@ namespace Rg.Plugins.Popup.Droid.Impl
             if (page == null)
                 throw new RGPageInvalidException("Popup page is null");
 
+            #region Pop-up POC
+
+            Popup.PopupViewCache.Remove(page.PopupId);
+            (Popup.Context as Activity)?.SetResult(Result.Canceled, _popupIntent);
+            _popupIntent?.Dispose();
+            _popupIntent = null;
+
+            #endregion Pop-up POC
+
             var renderer = page.GetOrCreateRenderer();
             if (renderer != null)
             {
@@ -102,7 +141,7 @@ namespace Rg.Plugins.Popup.Droid.Impl
                 var element = renderer.Element;
 
                 DecoreView?.RemoveView(renderer.View);
-                renderer.Dispose();
+                renderer.Dispose(); // TODO: problem... commenting out stops the app crashing, but generates a 2nd popup instance
 
                 if (element != null)
                     element.Parent = null;

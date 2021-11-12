@@ -26,6 +26,12 @@ namespace Rg.Plugins.Popup.Pages
 
         #region Internal Properties
 
+        #region Pop-up POC
+
+        internal Guid PopupId { get; set; } = Guid.NewGuid();
+
+        #endregion Pop-up POC
+
         internal Task? AppearingTransactionTask { get; set; }
 
         internal Task? DisappearingTransactionTask { get; set; }
