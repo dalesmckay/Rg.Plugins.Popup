@@ -1,6 +1,5 @@
 ﻿using System;
 using Android.App;
-using Android.Content;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
@@ -29,6 +28,11 @@ namespace Rg.Plugins.Popup.Platforms.Android.Activities
             }
 
             Popup.Context = this;
+
+            // NOTE: neither of these options are ideal
+            // var flags = WindowManagerFlags.ForceNotFullscreen; // Results in an ugly animated status bar mask
+            var flags = WindowManagerFlags.Fullscreen;      // Result in status bar being toggled
+            Window?.SetFlags(flags, flags);
 
             var decorView = (FrameLayout?)Window?.DecorView;
             decorView?.AddView(_popupView);
