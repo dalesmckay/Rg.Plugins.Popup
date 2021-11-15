@@ -23,7 +23,7 @@ namespace Rg.Plugins.Popup
 
         internal static bool IsInitialized { get; private set; }
 
-        internal static Context? Context { get; private set; }
+        internal static Context? Context { get; set; }
 
         public static void Init(Context context)
         {

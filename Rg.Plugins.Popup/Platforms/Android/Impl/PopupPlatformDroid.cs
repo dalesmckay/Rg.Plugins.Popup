@@ -26,6 +26,7 @@ namespace Rg.Plugins.Popup.Droid.Impl
     {
         private static FrameLayout? DecoreView => (FrameLayout?)((Activity?)Popup.Context)?.Window?.DecorView;
         private static Intent? _popupIntent;
+        private static Context? _popupContext;
 
         public event EventHandler OnInitialized
         {
@@ -39,6 +40,9 @@ namespace Rg.Plugins.Popup.Droid.Impl
 
         public Task AddAsync(PopupPage page)
         {
+            // Cache the existing context
+            _popupContext = Popup.Context;
+            
             var decoreView = DecoreView;
 
             HandleAccessibilityWorkaround(page);
@@ -66,7 +70,7 @@ namespace Rg.Plugins.Popup.Droid.Impl
                     Popup.PopupViewCache.Add(popupId, renderer.View);
                     _popupIntent = new Intent(Popup.Context, typeof(PopupActivity));
                     _popupIntent.PutExtra("popupId", popupId.ToString("N"));
-                    (Popup.Context as Activity)?.StartActivityForResult(_popupIntent, 0);
+                    (Popup.Context as Activity)?.StartActivity(_popupIntent);
                 }
             }
             catch (Exception e)
@@ -126,9 +130,10 @@ namespace Rg.Plugins.Popup.Droid.Impl
             #region Pop-up POC
 
             Popup.PopupViewCache.Remove(page.PopupId);
-            (Popup.Context as Activity)?.SetResult(Result.Canceled, _popupIntent);
+            (Popup.Context as Activity)?.Finish();
             _popupIntent?.Dispose();
             _popupIntent = null;
+            Popup.Context = _popupContext;
 
             #endregion Pop-up POC
 
@@ -140,8 +145,13 @@ namespace Rg.Plugins.Popup.Droid.Impl
                 page.Parent = XApplication.Current.MainPage;
                 var element = renderer.Element;
 
-                DecoreView?.RemoveView(renderer.View);
-                renderer.Dispose(); // TODO: problem... commenting out stops the app crashing, but generates a 2nd popup instance
+                // DecoreView?.RemoveView(renderer.View);
+                Device.BeginInvokeOnMainThread(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                    // TODO: problem... commenting out stops the app crashing, but generates a 2nd popup instance
+                    renderer.Dispose();
+                });
 
                 if (element != null)
                     element.Parent = null;

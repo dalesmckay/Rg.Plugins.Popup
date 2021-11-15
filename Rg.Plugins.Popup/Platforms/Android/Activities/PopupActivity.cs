@@ -28,6 +28,8 @@ namespace Rg.Plugins.Popup.Platforms.Android.Activities
                 throw new Exception("Popup instance not found");
             }
 
+            Popup.Context = this;
+
             var decorView = (FrameLayout?)Window?.DecorView;
             decorView?.AddView(_popupView);
         }
@@ -41,13 +43,6 @@ namespace Rg.Plugins.Popup.Platforms.Android.Activities
                 var decorView = (FrameLayout?)Window?.DecorView;
                 decorView?.RemoveView(_popupView);
             }
-        }
-
-        // protected override void OnActivityResult(int requestCode, [GeneratedEnum] Result resultCode, Intent? data)
-        protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
-        {
-            base.OnActivityResult(requestCode, resultCode, data);
-            Finish();
         }
 
         public override void OnBackPressed()
