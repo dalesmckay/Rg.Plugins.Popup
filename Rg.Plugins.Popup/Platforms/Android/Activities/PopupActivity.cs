@@ -40,11 +40,11 @@ namespace Rg.Plugins.Popup.Platforms.Android.Activities
 
             Popup.Context = this;
 
+            // using the 'enter' animation seems to solve this issue of the status bar being toggled or obscured, not sure why, but I'll take it.
             // NOTE: neither of these options are ideal
-            // var flags = WindowManagerFlags.Fullscreen;      // Result in status bar being toggled/pushed off screen
-            var flags = WindowManagerFlags.ForceNotFullscreen; // works perfectly but Results in a quick but ugly downward moving mask on the way out
-
-            Window?.SetFlags(flags, flags);
+            // var flags = WindowManagerFlags.Fullscreen;      // Result in status bar being covered/toggled/pushed off screen
+            // var flags = WindowManagerFlags.ForceNotFullscreen; // works perfectly, but results in a quick but ugly downward moving mask when the popup transitions out.
+            // Window?.SetFlags(flags, flags);
 
             var decorView = (FrameLayout?)Window?.DecorView;
             decorView?.AddView(_popupView);
@@ -53,7 +53,7 @@ namespace Rg.Plugins.Popup.Platforms.Android.Activities
         public override void Finish()
         {
             base.Finish();
-            OverridePendingTransition(_exitAnimationResourceId, _exitAnimationResourceId);
+            // OverridePendingTransition(_exitAnimationResourceId, _exitAnimationResourceId);
         }
 
         public override void OnBackPressed()
